@@ -26,4 +26,4 @@ Add a visually stunning banner image to any note by specifying the image path in
    bannerFocus: 20   # optional (examples: "center", "top")
    ---
 2. **Reload the note**
-   Click on a different note and go back to the note you want to edit.
+Click on a different note and go back to the note you want to edit.
