@@ -13,6 +13,7 @@ Add a visually stunning banner image to any note by specifying the image path in
 - **No need for manual callouts or markdown image embeds.**
 - **Efficient and unobtrusive:** only affects notes with a `banner` property.
 - **CSS stored in a separate `style.css` file** for easy tweaking and theming.
+- **Choose banner image location:** Toggle in plugin settings to select if banners are loaded from the note's folder or always from the root attachments folder.
 
 ---
 
