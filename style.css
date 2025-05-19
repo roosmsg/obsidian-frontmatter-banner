@@ -1,0 +1,60 @@
+/* banner.css */
+
+/* Globals */
+:root {
+  --banner-image-height: 250px;   /* from settings/plugin */
+  --banner-gap: 1.9rem;           /* small space below banner */
+  --banner-position: center; /* default focus */
+}
+
+/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+/* Reading (preview) mode — only when banner-url is present */
+.markdown-preview-view[style*="--banner-url"] {
+  position: relative;
+  padding-top: calc(var(--banner-image-height) + var(--banner-gap));
+}
+
+.markdown-preview-view[style*="--banner-url"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: var(--banner-image-height);
+  background-image: var(--banner-url);
+  background-size: cover;
+  background-position: var(--banner-position);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* print fallback */
+@media print {
+  .markdown-preview-view[style*="--banner-url"]::before {
+    position: static;
+  }
+}
+
+/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+/* Editing mode (CM6 Live Preview & Legacy Source) — only when banner-url is present */
+.workspace-leaf-content[data-type="markdown"] .cm-scroller[style*="--banner-url"] {
+  position: relative;
+  padding-top: calc(var(--banner-image-height) + var(--banner-gap)) !important;
+}
+
+.workspace-leaf-content[data-type="markdown"] .cm-scroller[style*="--banner-url"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: var(--banner-image-height);
+  background-image: var(--banner-url);
+  background-size: cover;
+  background-position: var(--banner-position);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* print fallback */
+@media print {
+  .workspace-leaf-content[data-type="markdown"] .cm-scroller[style*="--banner-url"]::before {
+    position: static;
+  }
+}

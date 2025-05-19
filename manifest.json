@@ -1,0 +1,9 @@
+{
+  "id": "frontmatter-banner",
+  "name": "Frontmatter Banner",
+  "version": "1.0.0",
+  "author": "Roosmsg",
+  "description": "Auto-render banner image from frontmatter field `banner` using CSS variable.",
+  "main": "main.js",
+  "minAppVersion": "0.12.0"
+}
