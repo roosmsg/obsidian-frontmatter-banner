@@ -4,7 +4,10 @@ const STYLE_ID = 'frontmatter-banner-style';
 module.exports = class FrontmatterBannerPlugin extends Plugin {
   async onload() {
     // Load settings
-    this.settings = Object.assign({ bannerHeight: 250 }, await this.loadData());
+    this.settings = Object.assign({ 
+      bannerHeight: 250, 
+      useRootAttachmentFolder: false 
+    }, await this.loadData());
 
     // Apply initial banner height CSS variable
     document.documentElement.style.setProperty(
@@ -81,21 +84,34 @@ module.exports = class FrontmatterBannerPlugin extends Plugin {
     if (rawFocus) {
       const trimmed = rawFocus.toString().trim();
       if (/^\d+$/.test(trimmed)) {
-        // Numeric only, treat as percentage vertical offset
         focus = `0% ${trimmed}%`;
       } else if (/^\d+%$/.test(trimmed)) {
-        // Single percentage, vertical offset
         focus = `0% ${trimmed}`;
       } else {
-        // Full CSS position value
         focus = trimmed;
       }
     }
 
-    // Resolve banner URL
-    const resourcePath = this.app.vault.adapter.getResourcePath(
-      view.file.path.replace(/[^/]+$/, banner)
-    );
+    // --- CHANGES BELOW: path resolution based on toggle ---
+    let bannerPath;
+    if (this.settings.useRootAttachmentFolder) {
+      // Always look in root/attachments folder (take only filename)
+      const filename = String(banner).split('/').pop();
+      bannerPath = `attachments/${filename}`;
+    } else {
+      // Look in relative attachment folder (current behavior)
+      bannerPath = String(banner);
+    }
+
+    // Determine the base path for the banner image
+    let resourcePath;
+    if (this.settings.useRootAttachmentFolder) {
+      resourcePath = this.app.vault.adapter.getResourcePath(bannerPath);
+    } else {
+      resourcePath = this.app.vault.adapter.getResourcePath(
+        view.file.path.replace(/[^/]+$/, bannerPath)
+      );
+    }
 
     // Apply to preview mode
     if (previewEl) {
@@ -118,7 +134,6 @@ module.exports = class FrontmatterBannerPlugin extends Plugin {
     // Remove injected style
     const existing = document.getElementById(STYLE_ID);
     if (existing) existing.remove();
-    // No console.log
   }
 };
 
@@ -149,6 +164,20 @@ class BannerSettingTab extends PluginSettingTab {
               );
               await this.plugin.saveSettings();
             }
+          })
+      );
+
+    // --- CHANGES: Add toggle ---
+    new Setting(this.containerEl)
+      .setName('Always use root attachment folder for banners')
+      .setDesc('If enabled, banner images are always loaded from the root attachment folder. If disabled, they are loaded relative to the note location.')
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.useRootAttachmentFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.useRootAttachmentFolder = value;
+            await this.plugin.saveSettings();
+            this.plugin.injectBannerStyle();
           })
       );
   }
