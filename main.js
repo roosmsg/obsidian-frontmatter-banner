@@ -167,7 +167,6 @@ class BannerSettingTab extends PluginSettingTab {
           })
       );
 
-    // --- CHANGES: Add toggle ---
     new Setting(this.containerEl)
       .setName('Always use root attachment folder for banners')
       .setDesc('If enabled, banner images are always loaded from the root attachment folder. If disabled, they are loaded relative to the note location.')
