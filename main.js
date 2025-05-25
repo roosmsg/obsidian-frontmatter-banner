@@ -55,7 +55,7 @@ module.exports = class FrontmatterBannerPlugin extends Plugin {
     }
   }
 
-  injectBannerStyle() {
+  async injectBannerStyle() {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view || !view.file) return;
 
@@ -92,26 +92,37 @@ module.exports = class FrontmatterBannerPlugin extends Plugin {
       }
     }
 
-    // --- CHANGES BELOW: path resolution based on toggle ---
-    let bannerPath;
-    if (this.settings.useRootAttachmentFolder) {
-      // Always look in root/attachments folder (take only filename)
-      const filename = String(banner).split('/').pop();
-      bannerPath = `attachments/${filename}`;
+    // Build possible paths
+    let possiblePaths = [];
+    if (String(banner).includes('/')) {
+      // User gave a path, use as-is according to toggle
+      if (this.settings.useRootAttachmentFolder) {
+        possiblePaths = [ `attachments/${banner}` ];
+      } else {
+        possiblePaths = [ view.file.path.replace(/[^/]+$/, banner) ];
+      }
     } else {
-      // Look in relative attachment folder (current behavior)
-      bannerPath = String(banner);
+      // Just a filename; try both "attachments/filename" and "<current-folder>/attachments/filename"
+      const filename = String(banner).trim();
+      const rootAttachments = `attachments/${filename}`;
+      const perFolderAttachments = view.file.path.replace(/[^/]+$/, `attachments/${filename}`);
+
+      if (this.settings.useRootAttachmentFolder) {
+        possiblePaths = [rootAttachments, perFolderAttachments];
+      } else {
+        possiblePaths = [perFolderAttachments];
+      }
     }
 
-    // Determine the base path for the banner image
-    let resourcePath;
-    if (this.settings.useRootAttachmentFolder) {
-      resourcePath = this.app.vault.adapter.getResourcePath(bannerPath);
-    } else {
-      resourcePath = this.app.vault.adapter.getResourcePath(
-        view.file.path.replace(/[^/]+$/, bannerPath)
-      );
+    let resourcePath = null;
+    for (const path of possiblePaths) {
+      if (await this.app.vault.adapter.exists(path)) {
+        resourcePath = this.app.vault.adapter.getResourcePath(path);
+        break;
+      }
     }
+
+    if (!resourcePath) return;
 
     // Apply to preview mode
     if (previewEl) {
@@ -168,8 +179,8 @@ class BannerSettingTab extends PluginSettingTab {
       );
 
     new Setting(this.containerEl)
-      .setName('Always use root attachment folder for banners')
-      .setDesc('If enabled, banner images are always loaded from the root attachment folder. If disabled, they are loaded relative to the note location.')
+      .setName('Use root attachment folder for banners')
+      .setDesc('If enabled, the plugin tries the root attachments folder first, then per-note folder. If disabled, only tries per-note folder.')
       .addToggle(toggle =>
         toggle
           .setValue(this.plugin.settings.useRootAttachmentFolder)
